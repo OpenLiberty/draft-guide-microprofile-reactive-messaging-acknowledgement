@@ -1,6 +1,6 @@
 // tag::copyright[]
 /*******************************************************************************
- * Copyright (c) 2020 IBM Corporation and others.
+ * Copyright (c) 2020, 2021 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -35,10 +35,10 @@ import io.reactivex.rxjava3.core.Flowable;
 
 @ApplicationScoped
 public class SystemService {
-    
+
     private static Logger logger = Logger.getLogger(SystemService.class.getName());
 
-    private static final OperatingSystemMXBean osMean = 
+    private static final OperatingSystemMXBean OS_MEAN =
             ManagementFactory.getOperatingSystemMXBean();
     private static String hostname = null;
 
@@ -57,7 +57,7 @@ public class SystemService {
     public Publisher<SystemLoad> sendSystemLoad() {
         return Flowable.interval(15, TimeUnit.SECONDS)
                 .map((interval -> new SystemLoad(getHostname(),
-                        osMean.getSystemLoadAverage())));
+                        OS_MEAN.getSystemLoadAverage())));
     }
 
     // tag::sendProperty[]
@@ -75,10 +75,11 @@ public class SystemService {
         String propertyValue = System.getProperty(propertyName, "unknown");
         // end::propertyValue[]
         logger.info("sendProperty: " + propertyValue);
-        // tag::invalid[]
-        if (propertyName == null || propertyName.isEmpty() || propertyValue == "unknown") {
-            logger.warning("Provided property: " +
-                    propertyName + " is not a system property");
+        if (propertyName == null
+            || propertyName.isEmpty()
+            || propertyValue == "unknown") {
+            logger.warning("Provided property: "
+                    + propertyName + " is not a system property");
             // tag::propertyMessageAck[]
             propertyMessage.ack();
             // end::propertyMessageAck[]
@@ -86,7 +87,6 @@ public class SystemService {
             return ReactiveStreams.empty();
             // end::emptyReactiveStream[]
         }
-        // end::invalid[]
         // tag::returnMessage[]
         Message<PropertyMessage> message = Message.of(
                 new PropertyMessage(getHostname(),
@@ -94,8 +94,8 @@ public class SystemService {
                         propertyValue),
                 propertyMessage::ack
         );
-        return ReactiveStreams.of(message);
         // end::returnMessage[]
+        return ReactiveStreams.of(message);
     }
     // end::sendProperty[]
 }
